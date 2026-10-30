@@ -142,3 +142,9 @@ The app opens at `http://localhost:8501`. Upload a CSV and click **"Run analysis
 Record model size, language, task, and decoding settings for speech recognition tests. Evaluate transcription quality on representative audio and respect privacy when processing recordings.
 
 For reproducibility, record source versions, environment and dependency versions, configuration, and actual test outputs. Clearly label sample data and illustrative results; never commit secrets or private data.
+
+### Technical Deep Dive
+
+The shared LangGraph state is the contract between Explorer, Planner, Coder, and Writer nodes. Keep deterministic profiling in pandas, validate the Planner's structured output against the actual dataframe columns, and bound the Coder retry loop with an explicit attempt counter. Pass only the minimum required data to the code-execution process and return structured execution results to the graph.
+
+The documented subprocess approach has limits: a timeout and reduced environment do not prevent filesystem writes or network access. For untrusted generated code, use a stronger isolated runtime with resource limits and no secrets. Verify every generated chart and statistic against deterministic calculations before presenting insights.
