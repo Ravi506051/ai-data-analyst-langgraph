@@ -136,3 +136,9 @@ The app opens at `http://localhost:8501`. Upload a CSV and click **"Run analysis
 ## Demo
 
 ![Quick preview](docs/demo.gif)
+
+## Project Development Notes
+
+Record model size, language, task, and decoding settings for speech recognition tests. Evaluate transcription quality on representative audio and respect privacy when processing recordings.
+
+For reproducibility, record source versions, environment and dependency versions, configuration, and actual test outputs. Clearly label sample data and illustrative results; never commit secrets or private data.
