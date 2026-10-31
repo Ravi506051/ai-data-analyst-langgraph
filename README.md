@@ -156,3 +156,11 @@ The documented subprocess approach has limits: a timeout and reduced environment
 - Run generated code in an isolated, resource-limited environment; do not execute arbitrary generated code in the application process.
 - Test malformed CSVs, large files, missing values, high-cardinality columns, and code-generation failures.
 - Record retry counts, execution errors, model/provider versions, and evaluation examples. Clearly label generated insights as model-assisted interpretations.
+
+## Data Analysis Agent Quality Controls
+
+- Inspect uploaded datasets for schema, missingness, duplicate rows, data types, and suspicious values before analysis.
+- Use explicit tool boundaries for data loading, transformations, calculations, visualization, and explanation.
+- Validate generated code and execute it in a restricted environment when handling untrusted files.
+- Cross-check numerical summaries and chart aggregations against deterministic calculations.
+- Clearly distinguish observed results from assumptions and generated interpretations; never fabricate statistics.
