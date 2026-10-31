@@ -148,3 +148,11 @@ For reproducibility, record source versions, environment and dependency versions
 The shared LangGraph state is the contract between Explorer, Planner, Coder, and Writer nodes. Keep deterministic profiling in pandas, validate the Planner's structured output against the actual dataframe columns, and bound the Coder retry loop with an explicit attempt counter. Pass only the minimum required data to the code-execution process and return structured execution results to the graph.
 
 The documented subprocess approach has limits: a timeout and reduced environment do not prevent filesystem writes or network access. For untrusted generated code, use a stronger isolated runtime with resource limits and no secrets. Verify every generated chart and statistic against deterministic calculations before presenting insights.
+
+## Engineering and Evaluation Checklist
+
+- Keep deterministic dataset facts (row counts, types, missing values, summary statistics) in code rather than asking an LLM to guess them.
+- Validate planner output against a schema before passing it to code generation.
+- Run generated code in an isolated, resource-limited environment; do not execute arbitrary generated code in the application process.
+- Test malformed CSVs, large files, missing values, high-cardinality columns, and code-generation failures.
+- Record retry counts, execution errors, model/provider versions, and evaluation examples. Clearly label generated insights as model-assisted interpretations.
