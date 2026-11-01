@@ -164,3 +164,10 @@ The documented subprocess approach has limits: a timeout and reduced environment
 - Validate generated code and execute it in a restricted environment when handling untrusted files.
 - Cross-check numerical summaries and chart aggregations against deterministic calculations.
 - Clearly distinguish observed results from assumptions and generated interpretations; never fabricate statistics.
+
+## Agent Reliability and Data Safety
+
+- Keep deterministic profiling in Python and use the LLM for planning and explanation rather than arithmetic that can be computed exactly.
+- Execute generated code in a restricted sandbox with time, memory, filesystem, and network limits.
+- Test empty CSVs, mixed data types, missing values, high-cardinality columns, and malicious or malformed input.
+- Show which columns and calculations support each insight, and avoid exposing uploaded datasets or secrets in logs.
