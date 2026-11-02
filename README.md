@@ -1,173 +1,34 @@
 # Multi-Agent Data Analyst
 
-> Upload a CSV, and a system of **4 AI agents** collaborates to analyze it automatically: data exploration, analysis planning, Python code generation **and execution**, then natural-language insights.
+A CSV analysis assistant built around a multi-agent workflow. The application explores a dataset, plans useful analysis, generates and executes Python code, and presents charts with natural-language insights through a Streamlit interface.
 
-Built with **LangGraph**, this project goes beyond a simple "call an LLM" wrapper: it implements real multi-agent orchestration with shared state, structured output, a **self-correction loop**, and **sandboxed code execution** whose security trade-offs are deliberate and documented.
+## Agent workflow
+1. **Data exploration** — inspect columns, types, missing values and summary statistics.
+2. **Analysis planning** — select relevant questions and visualizations.
+3. **Code generation and execution** — create analysis code and run it in the configured execution environment.
+4. **Review and explanation** — interpret generated outputs and communicate findings.
 
----
+## Technology
+Python · LangGraph · Streamlit · Pandas · Plotly · LLM Integration
 
-## What it does
-
-Given any CSV file, the system:
-
-1. **inspects** the data (columns, types, missing values, statistics);
-2. **decides** which analyses and visualizations are relevant;
-3. **writes Python code** (pandas + Plotly), **executes it**, and **fixes itself** if the code fails;
-4. **interprets** the resulting charts and **writes** readable insights.
-
-Everything is driven through a **Streamlit** web interface: upload a CSV, click run, and get interactive charts alongside a written analysis.
-
-The system is **data-agnostic**: no column name is hard-coded. It adapts to the structure it *discovers*, so it works on datasets other than the one used during development.
-
----
-
-## Architecture
-
-Four agents collaborate through a **shared state** (a common "whiteboard"). Agents never call each other directly: each reads what it needs from the state and writes its own contribution back. This decoupling makes every agent independently testable and replaceable.
-
-```mermaid
-graph TD
-    START([CSV uploadé]) --> EXP[ Explorer<br/>deterministic pandas profiling]
-    EXP --> PLAN[ Planner<br/>LLM + structured Pydantic output]
-    PLAN --> CODE[ Coder<br/>generates + executes code in a sandbox]
-    CODE -->|success| WRITE[ Writer<br/>natural-language insights]
-    CODE -->|error, retries left| CODE
-    CODE -->|give up after 3 attempts| WRITE
-    WRITE --> END([Graphiques + insights])
-```
-
-| Agent | Role | Tool | Why this choice |
-|-------|------|------|-----------------|
-| **Explorer** | Profiles the dataset (facts) | pandas, **deterministic** | Counting rows or detecting types are *facts*: compute them exactly, don't ask an LLM (hallucination risk). |
-| **Planner** | Decides the analyses | LLM + **structured output** | Its output feeds the Coder → enforce a Pydantic schema (a machine *contract*), not free text. |
-| **Coder** | Generates and runs the code | LLM + **sandbox** + **retry loop** | Its output must actually *run*: isolated execution, plus self-correction on error (see below). |
-| **Writer** | Writes the insights | LLM, **free text** | Its deliverable is prose for a human → no schema, and a higher temperature for a natural tone. |
-
----
-
-## Multi-agent concepts demonstrated
-
-This project was an opportunity to apply concrete agentic-system patterns:
-
-- **Shared state & reducers** — a typed state (`TypedDict`) where each field has an update policy: some *overwrite* (latest result), others *accumulate* (`operator.add`) to keep a memory of past attempts.
-- **Structured output as a contract between agents** — when one agent feeds another, a Pydantic schema is enforced; when it produces for a human, free text is allowed.
-- **Self-correction loop (conditional edge)** — after the Coder, a routing function inspects the state: on error, the **failed code + error message** are sent back to the Coder so it can fix itself, bounded by a counter (`MAX_CODE_ATTEMPTS`).
-- **Anti-hallucination grounding** — the Explorer establishes the facts; the LLM agents reason over them without inventing, and outputs are *verified* (filtering out any non-existent columns proposed by the Planner) rather than trusted blindly.
-- **Engine / interface separation** — the LangGraph graph is a reusable engine; Streamlit is just a façade on top of it.
-
----
-
-## Security: executing LLM-generated code
-
-This is the trickiest — and most interesting — part of the project. Running code written by an LLM is dangerous. The chosen approach is deliberately **honest about both its guarantees and its limits**.
-
-**Assumed threat model:** **local** use, on user-provided data, with a non-adversarial LLM. The main risk is therefore not malicious code, but **buggy** code (wrong column, infinite loop…).
-
-**Isolation in place** (via `subprocess`):
-
-| Threat | Protected? | How |
-|--------|:---------:|-----|
-| Code crashes the application | ✅ | Runs in a **separate process** |
-| Code loops forever | ✅ | **Timeout** on the subprocess |
-| Code reads the API key (`OPENAI_API_KEY`) | ✅ | **Minimal environment**: no secrets passed to the child process |
-| Code writes/deletes files | ❌ | *Not protected* — subprocess inherits the user's permissions |
-| Code accesses the network | ❌ | *Not protected* |
-
-**`subprocess` reduces the blast radius, but is not a true sandbox.** The last two rows would require strong isolation (Docker / gVisor / a cloud sandbox such as E2B or Modal).
-
----
-
-##  Tech stack
-
-- **Orchestration:** LangGraph (shared state, nodes, conditional edges)
-- **LLM:** OpenAI (`gpt-4.1-mini`) via `langchain-openai`, with Pydantic structured output
-- **Data & visualization:** pandas, Plotly
-- **Interface:** Streamlit
-- **Python:** 3.12
-
----
-
-## 📁 Project structure
-
-```
-data-analyst-agents/
-├── app.py            # Streamlit interface (upload, run, display)
-├── graph.py          # LangGraph graph construction + conditional routing
-├── state.py          # Shared-state definition (TypedDict + reducers)
-├── config.py         # Centralized configuration (API key, model, constants)
-├── data_io.py        # CSV loading and validation
-├── explorer.py       # Explorer agent (pandas profiling)
-├── planner.py        # Planner agent (LLM + Pydantic schema)
-├── coder.py          # Coder agent (generation + execution + self-correction)
-├── execute.py   # Isolated execution sandbox (subprocess + timeout)
-├── writer.py         # Writer agent (interpretation + writing)
-├── requirements.txt
-└── .env              # API key (not committed)
-```
-
----
-
-## 🚀 Setup & run
-
-**Requirements:** Python 3.12 and an OpenAI API key.
-
+## Getting started
 ```bash
-# 1. Clone the repo
-git clone https://github.com/Maggydata/ai-data-analyst-langgraph.git
-
-# 2. Create the virtual environment and install dependencies
-python3.12 -m venv venv
-source venv/bin/activate          # Windows: venv\Scripts\activate
+git clone https://github.com/Ravi506051/ai-data-analyst-langgraph.git
+cd ai-data-analyst-langgraph
+python -m venv .venv
+# Windows: .venv\\Scripts\\activate
 pip install -r requirements.txt
-
-# 3. Configure the API key
-echo "OPENAI_API_KEY=sk-..." > .env
-
-# 4. Launch the app
-streamlit run app.py
 ```
+Configure the provider credentials required by the project using environment variables or the documented secrets mechanism. Start the app using the Streamlit command specified in the repository.
 
-The app opens at `http://localhost:8501`. Upload a CSV and click **"Run analysis"**.
+## Safety and reliability
+Executing generated code is a security-sensitive operation. Keep execution isolated, restrict filesystem and network access, enforce resource limits and validate uploaded files. Do not run generated code with unrestricted access to user data or credentials.
 
-> 💡 Recommended test dataset: the **Superstore Dataset** (Kaggle). Put the CSV anywhere — the upload happens from the interface.
+## Evaluation
+Test with CSV files containing missing values, mixed data types, large row counts and ambiguous column names. Check that charts and written conclusions match the actual computed results.
 
----
+## Future improvements
+Add deterministic analysis tools, execution timeouts, audit logs, typed agent state and regression tests for generated analyses.
 
-## Demo
-
-![Quick preview](docs/demo.gif)
-
-## Project Development Notes
-
-Record model size, language, task, and decoding settings for speech recognition tests. Evaluate transcription quality on representative audio and respect privacy when processing recordings.
-
-For reproducibility, record source versions, environment and dependency versions, configuration, and actual test outputs. Clearly label sample data and illustrative results; never commit secrets or private data.
-
-### Technical Deep Dive
-
-The shared LangGraph state is the contract between Explorer, Planner, Coder, and Writer nodes. Keep deterministic profiling in pandas, validate the Planner's structured output against the actual dataframe columns, and bound the Coder retry loop with an explicit attempt counter. Pass only the minimum required data to the code-execution process and return structured execution results to the graph.
-
-The documented subprocess approach has limits: a timeout and reduced environment do not prevent filesystem writes or network access. For untrusted generated code, use a stronger isolated runtime with resource limits and no secrets. Verify every generated chart and statistic against deterministic calculations before presenting insights.
-
-## Engineering and Evaluation Checklist
-
-- Keep deterministic dataset facts (row counts, types, missing values, summary statistics) in code rather than asking an LLM to guess them.
-- Validate planner output against a schema before passing it to code generation.
-- Run generated code in an isolated, resource-limited environment; do not execute arbitrary generated code in the application process.
-- Test malformed CSVs, large files, missing values, high-cardinality columns, and code-generation failures.
-- Record retry counts, execution errors, model/provider versions, and evaluation examples. Clearly label generated insights as model-assisted interpretations.
-
-## Data Analysis Agent Quality Controls
-
-- Inspect uploaded datasets for schema, missingness, duplicate rows, data types, and suspicious values before analysis.
-- Use explicit tool boundaries for data loading, transformations, calculations, visualization, and explanation.
-- Validate generated code and execute it in a restricted environment when handling untrusted files.
-- Cross-check numerical summaries and chart aggregations against deterministic calculations.
-- Clearly distinguish observed results from assumptions and generated interpretations; never fabricate statistics.
-
-## Agent Reliability and Data Safety
-
-- Keep deterministic profiling in Python and use the LLM for planning and explanation rather than arithmetic that can be computed exactly.
-- Execute generated code in a restricted sandbox with time, memory, filesystem, and network limits.
-- Test empty CSVs, mixed data types, missing values, high-cardinality columns, and malicious or malformed input.
-- Show which columns and calculations support each insight, and avoid exposing uploaded datasets or secrets in logs.
+## Maintainer
+**Ravi Kumar Rao** · [GitHub](https://github.com/Ravi506051)
