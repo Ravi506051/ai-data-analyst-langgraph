@@ -45,3 +45,10 @@ Add deterministic analysis tools, execution timeouts, audit logs, typed agent st
 ## Portfolio Context
 
 This project is part of my hands-on learning portfolio. The repository documents the workflow and implementation; results should be reproduced from the included code and data before being used in reports or professional claims.
+
+## Data Analysis Reliability
+
+- Validate uploaded file types, row counts, column types, and missing values before analysis.
+- Separate planning, code generation, execution, and explanation so each stage can be tested.
+- Execute generated code with restricted permissions and resource limits; never expose secrets to the analysis environment.
+- Verify chart labels, aggregation logic, and computed values against the source dataset before presenting insights.
