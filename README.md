@@ -33,22 +33,20 @@ Add deterministic analysis tools, execution timeouts, audit logs, typed agent st
 ## Maintainer
 **Ravi Kumar Rao** · [GitHub](https://github.com/Ravi506051)
 
-## Skills Demonstrated
+## Architecture
 
-- CSV data profiling
-- Automated exploratory analysis
-- LangGraph multi-agent orchestration
-- Python and Pandas
-- Chart generation
-- Validation of generated insights
+```text
+CSV upload → Explorer → Planner → Coder (up to 3 attempts) → Writer → charts and findings
+```
 
-## Portfolio Context
+The Streamlit interface is in `app.py`. The LangGraph workflow is assembled in `graph.py`; `explorer.py`, `planner.py`, `coder.py`, and `writer.py` implement the stages. `data_io.py` handles CSV input, while `execute.py` runs generated analysis code.
 
-This project is part of my hands-on learning portfolio. The repository documents the workflow and implementation; results should be reproduced from the included code and data before being used in reports or professional claims.
+## Configuration
 
-## Data Analysis Reliability
+Create a local `.env` file with `OPENAI_API_KEY`. The current configuration uses `gpt-4.1-mini`. Start the app with:
 
-- Validate uploaded file types, row counts, column types, and missing values before analysis.
-- Separate planning, code generation, execution, and explanation so each stage can be tested.
-- Execute generated code with restricted permissions and resource limits; never expose secrets to the analysis environment.
-- Verify chart labels, aggregation logic, and computed values against the source dataset before presenting insights.
+```bash
+streamlit run app.py
+```
+
+Generated code execution should be isolated and restricted before exposing this app to untrusted users.
